@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kiwrious Measure</title>
+  <meta name="description" content="Live readings, charting, and CSV export for Kiwrious USB sensors — built on Web Serial." />
+
+  <link rel="icon" type="image/svg+xml" href="assets/kiwrious-icon.svg" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/sensor-value.css" />
+  <link rel="stylesheet" href="styles/card.css" />
+  <link rel="stylesheet" href="styles/chart-modes.css" />
+</head>
+<body>
+
+<div class="app">
+  <!-- Humidity ambient animation overlay (only renders when applicable) -->
+  <div id="humidity-anim" class="humidity-anim" data-layers="0">
+    <div class="humidity-anim__layer humidity-anim__layer--1" style="display:none"></div>
+    <div class="humidity-anim__layer humidity-anim__layer--2" style="display:none"></div>
+    <div class="humidity-anim__layer humidity-anim__layer--3" style="display:none"></div>
+  </div>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar__brand">
+      <img class="topbar__logo" src="assets/kiwrious-icon.svg" alt="Kiwrious" />
+      <div>
+        <div class="topbar__title">Kiwrious Measure</div>
+        <div class="topbar__sub">Live readings · charting · CSV export</div>
+      </div>
+    </div>
+    <!-- Firmware notice — sits right next to the brand -->
+    <div id="firmware-banner" class="firmware-banner" style="display:none">
+      <span class="firmware-banner__icon" aria-hidden="true">⚠</span>
+      <span class="firmware-banner__text">A firmware update is available for this sensor.</span>
+      <a class="firmware-banner__link" href="https://sensor-update.kiwrious.com/dfu-util/" target="_blank" rel="noopener">Update now →</a>
+      <button id="firmware-collapse-btn" class="firmware-banner__close" type="button" aria-label="Collapse firmware notice">×</button>
+      <button id="firmware-expand-btn" class="firmware-banner__expand" type="button" aria-label="Show firmware update details">
+        <span class="firmware-banner__expand-label">Update</span>
+        <span class="firmware-banner__expand-arrow" aria-hidden="true">›</span>
+      </button>
+    </div>
+
+    <div class="topbar__spacer"></div>
+
+    <!-- Chart mode toolbar — sits right before the record button.
+         The options strip expands horizontally to the LEFT of the toggle
+         when opened; the toggle's chevron flips to point right (close). -->
+    <div id="chart-toolbar" class="chart-toolbar" style="display:none" role="toolbar" aria-label="Chart type">
+      <div id="chart-toolbar-options" class="chart-toolbar__options" role="group" aria-label="Chart modes"></div>
+      <button id="chart-toolbar-toggle" class="chart-toolbar__toggle" type="button"
+              aria-expanded="false" aria-label="Show chart modes">
+        <span class="chart-toolbar__chevron" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="10" height="10">
+            <polyline points="10,3 5,8 10,13" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span id="chart-toolbar-active-icon" class="chart-toolbar__active-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <!-- Record + sample rate (split button). The main side toggles
+         recording; the split chevron opens the rate menu. -->
+    <div id="record-group" class="record-group" style="display:none">
+      <button id="record-btn" class="record-group__main" type="button" disabled>
+        <span class="rec-ic rec-ic--rec" aria-hidden="true"></span>
+        <span class="record-group__label">Record</span>
+        <span id="record-rate-label" class="record-group__rate">1 Hz</span>
+      </button>
+      <button id="rate-menu-btn" class="record-group__split" type="button"
+              aria-haspopup="menu" aria-expanded="false" aria-label="Choose sample rate">
+        <span aria-hidden="true">▾</span>
+      </button>
+      <div id="rate-menu" class="menu menu--right" hidden role="menu"></div>
+    </div>
+
+    <!-- Status + connect (combined). Disconnected → acts as Connect button.
+         Connected → opens a menu containing Disconnect. -->
+    <div id="status-control" class="status-control">
+      <button id="status-btn" class="status-btn status-btn--disconnected" type="button"
+              aria-haspopup="menu" aria-expanded="false">
+        <span class="status-btn__dot" aria-hidden="true"></span>
+        <span id="status-btn-label" class="status-btn__label">Connect</span>
+        <span class="status-btn__chevron" aria-hidden="true">▾</span>
+      </button>
+      <div id="status-menu" class="menu menu--right" hidden role="menu">
+        <button class="menu__item" data-action="disconnect" type="button" role="menuitem">Disconnect</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main layout — visible from boot. Left pane swaps welcome ↔ sensor view
+       based on connection state; side panel (recordings / ranges / links)
+       is always visible. -->
+  <section id="connected" class="connected">
+
+    <!-- Left pane: welcome (when disconnected) or sensor visual + chart -->
+    <div class="left-pane">
+      <section id="welcome" class="welcome">
+        <img class="welcome__image" src="assets/all-sensors@2x.png" alt="Kiwrious sensors" />
+        <p class="welcome__guide">1. Plug in your Kiwrious sensor
+2. Press the Connect button</p>
+      </section>
+
+      <div id="sensor-value-area" class="sensor-value-area" style="display:none"></div>
+
+      <div id="chart-container" class="chart-wrap" style="display:none">
+        <div id="chart" class="chart-host"></div>
+      </div>
+    </div>
+
+    <!-- Right pane: recordings + sensor ranges (vertical rail tabs) -->
+    <aside id="side-panel" class="side-panel">
+      <div class="side-panel__body">
+        <div class="side-panel__pane is-active" data-pane="recordings" role="tabpanel" aria-labelledby="rail-tab-recordings">
+          <div class="side-panel__pane-header">
+            <button id="import-btn" class="btn btn--ghost btn--sm" type="button" title="Import a .kiwrious backup file">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <ellipse cx="8" cy="3.5" rx="5" ry="1.5"/>
+                <path d="M3 3.5v9c0 .83 2.24 1.5 5 1.5s5-.67 5-1.5v-9"/>
+                <path d="M3 7c0 .83 2.24 1.5 5 1.5s5-.67 5-1.5"/>
+                <path d="M3 10c0 .83 2.24 1.5 5 1.5s5-.67 5-1.5"/>
+              </svg>
+              <span>Import</span>
+            </button>
+            <button id="export-btn" class="btn btn--ghost btn--sm" type="button" title="Export all recordings as a .kiwrious backup file" style="display:none">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <ellipse cx="8" cy="3.5" rx="5" ry="1.5"/>
+                <path d="M3 3.5v9c0 .83 2.24 1.5 5 1.5s5-.67 5-1.5v-9"/>
+                <path d="M3 7c0 .83 2.24 1.5 5 1.5s5-.67 5-1.5"/>
+                <path d="M3 10c0 .83 2.24 1.5 5 1.5s5-.67 5-1.5"/>
+              </svg>
+              <span>Export</span>
+            </button>
+            <input id="import-file" type="file" accept=".kiwrious,application/json" hidden />
+          </div>
+          <p id="recordings-note" class="recordings-note" hidden>
+            All recordings live on this computer only and will be lost if you clear your browser cache.
+            Use <strong>Export</strong> to save a backup file, and <strong>Import</strong> to restore.
+          </p>
+          <div class="side-panel__list">
+            <div id="recordings-list"></div>
+            <p id="recordings-empty" class="side-panel__empty">No recordings yet. Press <strong>Record</strong> to start one.</p>
+          </div>
+        </div>
+
+        <div class="side-panel__pane" data-pane="insights" role="tabpanel" aria-labelledby="rail-tab-insights">
+          <div id="insights-content" class="insights-content"></div>
+        </div>
+
+        <div class="side-panel__pane" data-pane="ranges" role="tabpanel" aria-labelledby="rail-tab-ranges">
+          <div id="ranges-content" class="ranges-content"></div>
+        </div>
+
+        <div class="side-panel__pane" data-pane="links" role="tabpanel" aria-labelledby="rail-tab-links">
+          <div id="links-content" class="links-content"></div>
+        </div>
+      </div>
+
+      <nav class="side-panel__rail" role="tablist" aria-label="Side panel tabs">
+        <button id="rail-tab-recordings" class="rail-tab is-active" data-tab="recordings" role="tab" aria-selected="true">
+          <span class="rail-tab__label">Recordings</span>
+        </button>
+        <button id="rail-tab-insights" class="rail-tab" data-tab="insights" role="tab" aria-selected="false">
+          <span class="rail-tab__label">Insights</span>
+        </button>
+        <button id="rail-tab-ranges" class="rail-tab" data-tab="ranges" role="tab" aria-selected="false">
+          <span class="rail-tab__label">Ranges</span>
+        </button>
+        <button id="rail-tab-links" class="rail-tab" data-tab="links" role="tab" aria-selected="false">
+          <span class="rail-tab__label">Links</span>
+        </button>
+      </nav>
+    </aside>
+  </section>
+
+  <div class="app__footer">
+    <span id="app-version">v1.0.0</span>
+  </div>
+</div>
+
+<!-- ApexCharts (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.2/dist/apexcharts.min.js"></script>
+
+<!-- App entry (ES module) -->
+<script type="module" src="js/app.js"></script>
+
+</body>
+</html>

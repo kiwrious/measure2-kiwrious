@@ -1,0 +1,191 @@
+/* ============================================================
+   Per-mode styling for chart-mode components.
+   The chart-wrap supplies the container; each mode renders its
+   own DOM inside `#chart` (the active mode's host).
+   ============================================================ */
+
+#chart, .chart-host {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+/* ----- Bar mode -------------------------------------------- */
+.mode-bar {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 24px;
+  padding: 28px 32px 36px;
+  box-sizing: border-box;
+}
+.cbar { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.cbar__col {
+  flex: 1 1 auto;
+  width: 100%; max-width: 110px;
+  display: flex; flex-direction: column;
+  justify-content: flex-end; align-items: center;
+  position: relative; min-height: 0;
+}
+.cbar__value {
+  font: 500 14px/1 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  color: white; margin-bottom: 8px;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.cbar__fill {
+  width: 100%;
+  background: var(--cbar-color, var(--kw-orange));
+  border-radius: 8px 8px 0 0;
+  height: 0%; min-height: 3px; flex: 0 0 auto;
+  transition: height 400ms linear;
+}
+.cbar__name {
+  text-align: center; font-size: 12px; font-weight: 500;
+  color: var(--kw-text-muted); margin-top: 10px;
+}
+
+/* ----- Gauge mode ------------------------------------------ */
+.mode-gauge {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 12px 24px; box-sizing: border-box; gap: 16px;
+}
+.gauge { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; min-width: 0; max-width: 360px; }
+.gauge__svg { width: 100%; max-width: 280px; height: auto; }
+.gauge__name {
+  text-align: center; font-size: 12px; font-weight: 500;
+  color: var(--kw-text-muted); margin-top: 4px;
+}
+
+/* ----- Big number mode ------------------------------------- */
+.mode-big {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 24px 32px; box-sizing: border-box; gap: 24px;
+}
+.big { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.big__name {
+  font-size: 12px; font-weight: 500; letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--kw-text-muted); margin-bottom: 8px;
+}
+.big__row { display: flex; align-items: baseline; gap: 6px; }
+.big__value {
+  font: 700 56px/1 Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+}
+.big__unit {
+  font: 400 14px/1 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  color: var(--kw-text-muted);
+}
+.big__spark {
+  margin-top: 14px; width: 80%; max-width: 240px; height: 48px;
+}
+
+/* ----- UV dial --------------------------------------------- */
+.mode-uvdial {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 18px;
+}
+.uvdial__svg { width: 100%; max-width: 360px; height: auto; }
+.uvdial__band {
+  margin-top: 4px;
+  font: 600 18px/1 Roboto, sans-serif;
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+.uvdial__desc {
+  margin-top: 4px;
+  font-size: 13px; color: var(--kw-text-muted);
+  text-align: center; max-width: 320px;
+}
+
+/* ----- VOC traffic light ----------------------------------- */
+.mode-voclight {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; padding: 20px;
+}
+.voclight__chip {
+  position: relative;
+  width: 96px; height: 96px;
+  display: flex; align-items: center; justify-content: center;
+}
+.voclight__halo {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: var(--vl-color, #666);
+  opacity: 0.18;
+  animation: voclightPulse 2s ease-in-out infinite;
+}
+.voclight__core {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--vl-color, #666);
+  box-shadow: 0 0 24px var(--vl-color, #666);
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+@keyframes voclightPulse {
+  0%, 100% { transform: scale(1); opacity: 0.18; }
+  50%      { transform: scale(1.12); opacity: 0.28; }
+}
+.voclight__band {
+  font: 600 20px/1 Roboto, sans-serif;
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+.voclight__row {
+  display: flex; align-items: baseline; gap: 6px;
+  font: 500 14px/1 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  color: white;
+}
+.voclight__value { font-size: 18px; font-weight: 700; }
+.voclight__unit { color: var(--kw-text-muted); }
+.voclight__desc {
+  font-size: 13px; color: var(--kw-text-muted);
+  text-align: center; max-width: 280px;
+}
+
+/* ----- Pulse mode ------------------------------------------ */
+.mode-pulse {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px;
+}
+.pulse__heart {
+  width: 140px; height: auto;
+  filter: drop-shadow(0 0 18px var(--pulse-color, #FFCBE1));
+  transform-origin: center;
+  animation: pulseBeat 1s ease-in-out infinite;
+  animation-play-state: paused;
+}
+@keyframes pulseBeat {
+  0%, 60%, 100% { transform: scale(1); }
+  30%           { transform: scale(1.18); }
+}
+.pulse__row {
+  display: flex; align-items: baseline; gap: 6px;
+  font-family: Roboto, sans-serif;
+}
+.pulse__bpm {
+  font-size: 48px; font-weight: 700; color: white;
+  font-variant-numeric: tabular-nums; letter-spacing: -1px;
+}
+.pulse__unit { font-size: 14px; color: var(--kw-text-muted); }
+.pulse__band {
+  font: 500 13px/1 Roboto, sans-serif; letter-spacing: 0.5px;
+  color: var(--kw-text-muted); text-transform: uppercase;
+}
+
+/* ----- Comfort zone ---------------------------------------- */
+.mode-comfort {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 16px; gap: 8px;
+}
+.comfort__svg { width: 100%; max-width: 460px; height: auto; }

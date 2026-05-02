@@ -1,0 +1,75 @@
+/* ============================================================
+   Sensor value display — SVG-based per-sensor renderers
+   ============================================================ */
+
+.sv-svg {
+  width: 100%;
+  max-width: 640px;
+  height: 100%;
+  max-height: 320px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Heart rate state messages (PROCESSING / TOO_LOW / TOO_HIGH) */
+.hr-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  color: white;
+}
+.hr-state__title {
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0;
+}
+.hr-state__sub {
+  font-size: 14px;
+  color: var(--kw-text-muted);
+  max-width: 360px;
+  margin: 0;
+}
+.hr-state__gif {
+  width: 200px;
+  max-width: 60vw;
+}
+
+/* VOC warming-up overlay */
+.voc-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: white;
+}
+.voc-overlay__title {
+  font-size: 24px;
+  font-weight: 400;
+  margin: 0;
+}
+.voc-overlay__progress {
+  width: 60%;
+  max-width: 320px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.voc-overlay__bar {
+  height: 100%;
+  background: #00D36A;
+  width: 0%;
+  transition: width 0.4s ease;
+  border-radius: 999px;
+}
+
+/* Conductivity status helper text */
+.con-status {
+  font-size: 14px;
+  color: var(--kw-text-muted);
+  margin-top: 12px;
+}

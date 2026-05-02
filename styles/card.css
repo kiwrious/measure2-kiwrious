@@ -1,0 +1,146 @@
+/* ============================================================
+   Recording session card
+   ============================================================ */
+
+.card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  color: rgb(218, 218, 218);
+  font-size: 13px;
+}
+
+.card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* Expand/collapse toggle in the card header — chevron rotates with state. */
+.card__toggle {
+  flex: 0 0 auto;
+  width: 22px; height: 22px;
+  border: none; background: transparent;
+  color: var(--kw-text-muted);
+  cursor: pointer; padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  transition: transform 0.2s ease, color 0.15s, background 0.15s;
+}
+.card__toggle:hover { color: white; background: rgba(255,255,255,0.08); }
+/* Expanded → chevron points down; collapsed (is-mini) → points right. */
+.card:not(.is-mini) .card__toggle { transform: rotate(90deg); }
+.card__title {
+  flex: 1;
+  min-width: 0;
+}
+.card__title-text {
+  display: inline-block;
+  max-width: 100%;
+  font-weight: 500;
+  font-size: 14px;
+  color: white;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.card__title-text:hover { text-decoration: underline; }
+
+.card__rename-input {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  padding: 4px 8px;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  flex: 1;
+  min-width: 0;
+}
+.card__rename-input:focus {
+  outline: none;
+  border-color: var(--kw-orange);
+}
+
+.card__meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--kw-text-muted);
+  margin-bottom: 8px;
+}
+.card__meta span:not(:last-child)::after {
+  content: '•';
+  margin-left: 10px;
+  color: var(--kw-text-muted);
+}
+
+.card__rows {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.card__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 12px;
+  padding: 4px 0;
+  align-items: center;
+}
+.card__row strong { color: white; font-weight: 500; }
+.card__stat { color: var(--kw-text-muted); }
+.card__stat-val { color: white; font-weight: 500; }
+
+.card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.card__btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.card__btn:hover { background: rgba(255, 255, 255, 0.1); }
+.card__btn:active { background: rgba(255, 255, 255, 0.2); }
+.card__btn--danger { border-color: rgba(255, 100, 100, 0.5); color: #ff8080; }
+.card__btn--danger:hover { background: rgba(255, 100, 100, 0.1); }
+
+.card__btn--icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+.card__btn--icon.card__btn--danger { border-color: rgba(255, 100, 100, 0.35); }
+
+/* Mini card — older recordings show as compact 2-row tiles; click to expand.
+   The header (title + rate + chevron) and meta line stay visible; the per-
+   series stats and the action buttons fold away. */
+.card.is-mini {
+  padding: 9px 14px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+.card.is-mini:hover { background: rgba(255, 255, 255, 0.09); }
+.card.is-mini .card__header { margin-bottom: 4px; }
+.card.is-mini .card__meta { margin-bottom: 0; }
+.card.is-mini .card__rows { display: none; }
+.card.is-mini .card__actions { display: none; }
