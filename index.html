@@ -2,11 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kiwrious Measure</title>
-  <meta name="description" content="Live readings, charting, and CSV export for Kiwrious USB sensors — built on Web Serial." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kiwrious Measure — Live sensor readings in your browser</title>
+  <meta name="description" content="Live readings, charting, and CSV export for Kiwrious USB sensors — runs in your browser via Web Serial. Plug in, measure, share." />
+  <link rel="canonical" href="https://measure.kiwrious.com/" />
 
+  <!-- Favicons + PWA -->
   <link rel="icon" type="image/svg+xml" href="assets/kiwrious-icon.svg" />
+  <link rel="icon" href="https://cdn.kiwrious.com/img/favicon/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.kiwrious.com/img/favicon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="https://cdn.kiwrious.com/img/favicon/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.kiwrious.com/img/favicon/apple-icon-180x180.png" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#314250" />
+  <meta name="application-name" content="Kiwrious Measure" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Measure" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Kiwrious Measure — Live sensor readings in your browser" />
+  <meta property="og:description" content="Live readings, charting, and CSV export for Kiwrious USB sensors — runs in your browser via Web Serial." />
+  <meta property="og:url" content="https://measure.kiwrious.com/" />
+  <meta property="og:site_name" content="Kiwrious" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="en_NZ" />
+  <meta property="og:image" content="https://cdn.kiwrious.com/img/social/og-image.png" />
+  <meta property="og:image:secure_url" content="https://cdn.kiwrious.com/img/social/og-image.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Kiwrious Measure — Live sensor readings in your browser" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Kiwrious Measure — Live sensor readings in your browser" />
+  <meta name="twitter:description" content="Live readings, charting, and CSV export for Kiwrious USB sensors — runs in your browser via Web Serial." />
+  <meta name="twitter:image" content="https://cdn.kiwrious.com/img/social/og-image.png" />
+  <meta name="twitter:image:alt" content="Kiwrious Measure — Live sensor readings in your browser" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

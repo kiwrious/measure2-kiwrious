@@ -1,0 +1,35 @@
+{
+  "name": "Kiwrious Measure",
+  "short_name": "Measure",
+  "description": "Live readings, charting, and CSV export for Kiwrious USB sensors. Built on Web Serial.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#192A33",
+  "theme_color": "#314250",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["science", "education", "utilities"],
+  "icons": [
+    {
+      "src": "https://cdn.kiwrious.com/img/favicon/android-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.kiwrious.com/img/social/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.kiwrious.com/img/social/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
