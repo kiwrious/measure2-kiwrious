@@ -5,7 +5,7 @@
       "name": "Run Kiwrious Measure (Chrome)",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:5173",
+      "url": "http://localhost:4713",
       "webRoot": "${workspaceFolder}",
       "preLaunchTask": "Serve Kiwrious Measure"
     },
@@ -13,7 +13,7 @@
       "name": "Run Kiwrious Measure (Edge)",
       "type": "msedge",
       "request": "launch",
-      "url": "http://localhost:5173",
+      "url": "http://localhost:4713",
       "webRoot": "${workspaceFolder}",
       "preLaunchTask": "Serve Kiwrious Measure"
     }

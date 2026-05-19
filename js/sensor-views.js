@@ -4,6 +4,7 @@
    ============================================================ */
 
 import { SENSOR_TYPE, uvBand } from './constants.js';
+import { renderSensorClassic } from './sensor-views-classic.js';
 
 const escape = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
@@ -98,21 +99,23 @@ function renderTemperature(values) {
   const ir = num(values.find((v) => v.label === 'InfraredTemp')?.value);
   const ambient = num(values.find((v) => v.label === 'AmbientTemp')?.value);
   return svg(`
-    <g transform="translate(320,80)" font-family="Roboto, sans-serif" text-anchor="middle">
-      <g transform="translate(-100,-26)" fill="#D90033">
+    <!-- Left: surface (infrared) — primary, larger -->
+    <g transform="translate(180,140)" font-family="Roboto, sans-serif" text-anchor="middle">
+      <g transform="translate(0,-26)" fill="#D90033">
         <rect x="-6" y="-32" width="12" height="44" rx="6"/>
         <circle cx="0" cy="20" r="14"/>
       </g>
-      <text x="20" y="50" font-size="14" letter-spacing="0.6" fill="#cfd0d3" text-anchor="start">SURFACE</text>
-      <text x="20" y="-10" font-size="56" font-weight="700" fill="#FFFFFF" text-anchor="start">${ir.toFixed(1)}<tspan font-size="28" dy="-18">°</tspan></text>
+      <text x="0" y="80" font-size="56" font-weight="700" fill="#FFFFFF">${ir.toFixed(1)}<tspan font-size="28" dy="-18">°</tspan></text>
+      <text x="0" y="110" font-size="14" letter-spacing="0.6" fill="#cfd0d3">SURFACE (°C)</text>
     </g>
 
-    <g transform="translate(320,210)" font-family="Roboto, sans-serif" text-anchor="middle">
-      <g transform="translate(-100,-12)" fill="#F05479">
+    <!-- Right: ambient — secondary, smaller -->
+    <g transform="translate(460,140)" font-family="Roboto, sans-serif" text-anchor="middle">
+      <g transform="translate(0,-18)" fill="#F05479">
         <circle cx="0" cy="0" r="10"/>
       </g>
-      <text x="20" y="-2" font-size="32" font-weight="700" fill="#cfd0d3" text-anchor="start">${ambient.toFixed(1)}<tspan font-size="18" dy="-10">°</tspan></text>
-      <text x="20" y="22" font-size="11" letter-spacing="0.6" fill="#9aa1a8" text-anchor="start">AMBIENT (CELSIUS)</text>
+      <text x="0" y="80" font-size="42" font-weight="700" fill="#FFFFFF">${ambient.toFixed(1)}<tspan font-size="22" dy="-14">°</tspan></text>
+      <text x="0" y="110" font-size="13" letter-spacing="0.6" fill="#9aa1a8">AMBIENT (°C)</text>
     </g>
   `);
 }
@@ -213,8 +216,11 @@ function renderHeartRate(values) {
   `, { viewBox: '0 0 640 320' });
 }
 
-/* Dispatcher */
-export function renderSensor(sensorType, decodedValues) {
+/* Dispatcher — viewMode = 'modern' (default) | 'classic' */
+export function renderSensor(sensorType, decodedValues, viewMode = 'modern') {
+  if (viewMode === 'classic') {
+    return renderSensorClassic(sensorType, decodedValues);
+  }
   if (!decodedValues || decodedValues.length === 0) {
     return '<div class="hr-state"><p class="hr-state__title">Waiting for data…</p></div>';
   }

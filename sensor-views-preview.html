@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sensor Views Preview (Classic vs Modern)</title>
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/sensor-value.css" />
+  <style>
+    body { padding: 24px; overflow: auto; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .grid h2 { color: white; font-size: 14px; margin: 24px 0 8px; grid-column: 1 / -1; }
+    .grid h2 small { color: var(--kw-text-muted); font-weight: 400; margin-left: 8px; }
+    .cell {
+      background: var(--kw-bg-home);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cell__label {
+      position: absolute;
+      font-size: 11px;
+      color: var(--kw-text-muted);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+    .cell { position: relative; }
+    .cell__label { top: 6px; left: 10px; }
+  </style>
+</head>
+<body>
+<div class="grid" id="grid"></div>
+
+<script type="module">
+  import { renderSensor } from './js/sensor-views.js';
+  import { SENSOR_TYPE } from './js/constants.js';
+
+  // Multiple fixtures per sensor — covers low/typical/extreme values so
+  // we can confirm the dynamic font sizing keeps long readings inside
+  // their pebble.
+  const fixtures = {
+    [SENSOR_TYPE.UV]: [
+      { caption: 'low',     values: [{ label: 'Lux', value: 42 },     { label: 'Uv', value: 0.4 }] },
+      { caption: 'typical', values: [{ label: 'Lux', value: 12345 },  { label: 'Uv', value: 7.2 }] },
+      { caption: 'extreme', values: [{ label: 'Lux', value: 100000 }, { label: 'Uv', value: 11.5 }] },
+    ],
+    [SENSOR_TYPE.HUMIDITY]: [
+      { caption: 'typical', values: [{ label: 'Temp', value: 22.4 }, { label: 'Hum', value: 58.7 }] },
+      { caption: 'extreme', values: [{ label: 'Temp', value: -10.5 }, { label: 'Hum', value: 100.0 }] },
+    ],
+    [SENSOR_TYPE.TEMPERATURE]: [
+      { caption: 'typical', values: [{ label: 'AmbientTemp', value: 21.0 }, { label: 'InfraredTemp', value: 36.5 }] },
+      { caption: 'extreme', values: [{ label: 'AmbientTemp', value: -10.5 }, { label: 'InfraredTemp', value: 120.4 }] },
+    ],
+    [SENSOR_TYPE.CONDUCTIVITY]: [
+      { caption: 'typical', values: [{ label: 'Con', type: 'object', value: { status: 'READY', value: 412 } }] },
+      { caption: 'extreme', values: [{ label: 'Con', type: 'object', value: { status: 'READY', value: 200000 } }] },
+    ],
+    [SENSOR_TYPE.VOC]: [
+      { caption: 'typical', values: [{ label: 'Voc', type: 'object', value: { status: 'READY', value: 184, dataReadyPercentage: 100 } }] },
+      { caption: 'extreme', values: [{ label: 'Voc', type: 'object', value: { status: 'READY', value: 65000, dataReadyPercentage: 100 } }] },
+    ],
+    [SENSOR_TYPE.HEART_RATE]: [
+      { caption: 'typical', values: [{ label: 'HeartRate', type: 'object', value: { status: 'READY', value: 72 } }] },
+    ],
+  };
+
+  const order = [
+    SENSOR_TYPE.UV,
+    SENSOR_TYPE.HUMIDITY,
+    SENSOR_TYPE.TEMPERATURE,
+    SENSOR_TYPE.CONDUCTIVITY,
+    SENSOR_TYPE.VOC,
+    SENSOR_TYPE.HEART_RATE,
+  ];
+
+  const grid = document.getElementById('grid');
+  for (const type of order) {
+    for (const fx of fixtures[type]) {
+      const header = document.createElement('h2');
+      header.innerHTML = `${type} <small>${fx.caption} — classic vs modern</small>`;
+      grid.appendChild(header);
+
+      const c = document.createElement('div');
+      c.className = 'cell';
+      c.innerHTML = `<span class="cell__label">classic · ${fx.caption}</span>${renderSensor(type, fx.values, 'classic')}`;
+      grid.appendChild(c);
+
+      const m = document.createElement('div');
+      m.className = 'cell';
+      m.innerHTML = `<span class="cell__label">modern · ${fx.caption}</span>${renderSensor(type, fx.values, 'modern')}`;
+      grid.appendChild(m);
+    }
+  }
+</script>
+</body>
+</html>

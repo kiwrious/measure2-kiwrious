@@ -35,6 +35,14 @@ import {
 } from './recordings.js';
 
 /* ----- State ------------------------------------------------ */
+const VIEW_MODE_STORAGE_KEY = 'kw-measure-view-mode';
+function loadViewMode() {
+  try {
+    const v = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+    return v === 'classic' ? 'classic' : 'modern';
+  } catch { return 'modern'; }
+}
+
 const state = {
   isConnected: false,
   isRecording: false,
@@ -47,6 +55,7 @@ const state = {
   chartIntervalId: null,
   chartType: 'line',
   firmwareCollapseTimer: null,
+  viewMode: loadViewMode(),
 };
 
 const FIRMWARE_AUTO_COLLAPSE_MS = 10_000;
@@ -75,6 +84,8 @@ const els = {
   chartToolbarOptions: $('#chart-toolbar-options'),
   chartToolbarToggle: $('#chart-toolbar-toggle'),
   chartToolbarActiveIcon: $('#chart-toolbar-active-icon'),
+  viewToggle: $('#view-toggle'),
+  viewToggleBtns: document.querySelectorAll('#view-toggle .view-toggle__btn'),
   recordingsList: $('#recordings-list'),
   recordingsEmpty: $('#recordings-empty'),
   recordingsNote: $('#recordings-note'),
@@ -89,7 +100,7 @@ const els = {
   insightsContent: $('#insights-content'),
   firmwareExpandBtn: $('#firmware-expand-btn'),
   firmwareCollapseBtn: $('#firmware-collapse-btn'),
-  humidityAnim: $('#humidity-anim'),
+  sensorAnim: $('#sensor-anim'),
   appVersion: $('#app-version'),
 };
 
@@ -137,7 +148,7 @@ function handleSensorData(reading) {
     onSensorTypeChange();
   }
   renderSensorValueArea();
-  updateHumidityAnim();
+  updateSensorAnim();
   updateInsightsHighlight();
 }
 
@@ -237,6 +248,9 @@ function syncUi() {
   els.chartContainer.style.display = state.isConnected ? '' : 'none';
   // Chart-mode toolbar (now in the topbar) follows the chart's visibility
   els.chartToolbar.style.display = state.isConnected ? 'inline-flex' : 'none';
+  syncViewToggle();
+  // Disconnects (or sensor swap) need the particle layer to keep up too.
+  updateSensorAnim();
 
   // Status / Connect button — same element, two modes
   if (state.isConnected) {
@@ -277,27 +291,140 @@ function syncUi() {
 
 function renderSensorValueArea() {
   if (!state.isConnected) return;
-  els.sensorValueArea.innerHTML = renderSensor(state.sensorType, state.latestValues);
+  els.sensorValueArea.innerHTML = renderSensor(state.sensorType, state.latestValues, state.viewMode);
 }
 
-/* Humidity background animation
-   ------------------------------------------------------------ */
-function updateHumidityAnim() {
-  if (!els.humidityAnim) return;
-  if (state.sensorType !== SENSOR_TYPE.HUMIDITY) {
-    els.humidityAnim.dataset.layers = '0';
+function syncViewToggle() {
+  if (!els.viewToggle) return;
+  els.viewToggle.style.display = state.isConnected ? 'inline-flex' : 'none';
+  els.viewToggleBtns.forEach((btn) => {
+    const active = btn.dataset.mode === state.viewMode;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function setViewMode(mode) {
+  const next = mode === 'classic' ? 'classic' : 'modern';
+  if (next === state.viewMode) return;
+  state.viewMode = next;
+  try { localStorage.setItem(VIEW_MODE_STORAGE_KEY, next); } catch { /* ignore */ }
+  syncViewToggle();
+  if (state.isConnected) renderSensorValueArea();
+}
+
+/* Sensor-aware particle backdrop
+   ------------------------------------------------------------
+   Each particle is its own SVG element with a per-particle drift
+   vector + animation phase, so the population reads as random
+   motion rather than a single sliding sheet. All shapes are
+   white at low alpha — colour comes from the sensor pebbles in
+   the foreground, not the backdrop. */
+
+// Tiny silhouettes (16×16 viewBox) — one per sensor. Just enough
+// silhouette to feel sensor-themed without competing with the UI.
+const PARTICLE_SHAPES = {
+  [SENSOR_TYPE.HUMIDITY]:     'M8 2 C11 5 13 8 13 11 a5 5 0 0 1 -10 0 c0 -3 2 -6 5 -9 z',
+  [SENSOR_TYPE.TEMPERATURE]:  'M8 2 C10 5 12 7 11 9 C12 11 11 13 9 13 C7 13 5 11 6 9 C7 7 6 5 8 2 z',
+  [SENSOR_TYPE.UV]:           'M8 5 a3 3 0 1 1 0 6 a3 3 0 1 1 0 -6 z M8 1 v2 M8 13 v2 M1 8 h2 M13 8 h2 M3 3 l1.4 1.4 M11.6 11.6 l1.4 1.4 M3 13 l1.4 -1.4 M11.6 4.4 l1.4 -1.4',
+  [SENSOR_TYPE.VOC]:          'M8 5 a1.6 1.6 0 1 1 0 3.2 a1.6 1.6 0 1 1 0 -3.2 z M5 10 a1.2 1.2 0 1 1 0 2.4 a1.2 1.2 0 1 1 0 -2.4 z M11 10 a1.2 1.2 0 1 1 0 2.4 a1.2 1.2 0 1 1 0 -2.4 z',
+  [SENSOR_TYPE.CONDUCTIVITY]: 'M9 1 L4 8 L7 8 L6 14 L11 7 L8 7 z',
+  [SENSOR_TYPE.HEART_RATE]:   'M8 13 C3 10 1 8 2 5 C4 2 6 4 8 6 C10 4 12 2 14 5 C15 8 13 10 8 13 z',
+};
+
+const PARTICLE_COUNT_BY_INTENSITY = { 0: 0, 1: 22, 2: 38, 3: 56 };
+
+// Cheap deterministic-ish RNG so each population looks fresh on regen
+// without seed plumbing — fine because we only regenerate on sensor
+// type/intensity changes (handful of times per session).
+function rand(min, max) { return min + Math.random() * (max - min); }
+
+function intensityFor(sensorType, values) {
+  if (sensorType === SENSOR_TYPE.UNKNOWN) return 0;
+  if (sensorType === SENSOR_TYPE.HUMIDITY) {
+    const hum = Number(values.find((v) => v.label === 'Hum')?.value ?? 0);
+    if (hum >= 80) return 3;
+    if (hum >= 50) return 2;
+    if (hum >= 20) return 1;
+    return 0;
+  }
+  return 1; // every other sensor gets a single quiet layer
+}
+
+function renderParticles(type, intensity) {
+  if (!els.sensorAnim) return;
+  const path = PARTICLE_SHAPES[type];
+  const count = PARTICLE_COUNT_BY_INTENSITY[intensity] ?? 0;
+  if (!path || !count) {
+    els.sensorAnim.innerHTML = '';
     return;
   }
-  const hum = Number(state.latestValues.find((v) => v.label === 'Hum')?.value ?? 0);
-  let layers = 0;
-  if (hum >= 20) layers = 1;
-  if (hum >= 50) layers = 2;
-  if (hum >= 80) layers = 3;
-  els.humidityAnim.dataset.layers = String(layers);
-  // toggle visibility of layers via CSS [data-layers]
-  els.humidityAnim.querySelectorAll('.humidity-anim__layer').forEach((node, i) => {
-    node.style.display = i < layers ? '' : 'none';
-  });
+  const isLine = type === SENSOR_TYPE.UV; // UV path is sun-with-rays (stroke)
+  const fragments = [];
+  for (let i = 0; i < count; i++) {
+    const left   = rand(-2, 102);   // slight overflow so edges don't look bare
+    const top    = rand(-2, 102);
+    // Wider size + speed spread so the population doesn't read as one
+    // homogeneous swarm. Floor is the previous tight range; the new
+    // ceiling lets a few particles be noticeably bigger or quicker.
+    const size   = rand(7, 22);     // px — most still tiny, a few larger
+    const opacity = rand(0.05, 0.14); // mostly transparent
+    const dur    = rand(12, 42);    // s — most slow & relaxed, a few faster
+    const delay  = -rand(0, dur);   // negative => phase already in motion
+    const dx     = rand(-90, 90);
+    const dy     = rand(-90, 90);
+    const rot    = rand(0, 360);
+    const stroke = isLine
+      ? `stroke="white" stroke-width="1.4" stroke-linecap="round" fill="none"`
+      : '';
+    fragments.push(
+      `<svg class="sensor-anim__p" viewBox="0 0 16 16"`
+      + ` style="left:${left.toFixed(2)}%;top:${top.toFixed(2)}%;`
+      + `width:${size.toFixed(1)}px;height:${size.toFixed(1)}px;`
+      + `opacity:${opacity.toFixed(3)};`
+      + `--d:${dur.toFixed(1)}s;--dl:${delay.toFixed(1)}s;`
+      + `--dx:${dx.toFixed(0)}px;--dy:${dy.toFixed(0)}px;`
+      + `--rot:${rot.toFixed(0)}deg;">`
+      + `<path d="${path}" ${stroke}/></svg>`
+    );
+  }
+  els.sensorAnim.innerHTML = fragments.join('');
+}
+
+function updateSensorAnim() {
+  if (!els.sensorAnim) return;
+  // Dev/QA escape hatch: `?particle=HUMIDITY[&intensity=2]` pins the
+  // backdrop on with no sensor, so visual tweaks are testable without
+  // plugging in hardware. Real sensor traffic always wins once it
+  // arrives — the override only applies while disconnected.
+  const params = new URLSearchParams(window.location.search);
+  const forcedType = params.get('particle');
+  const forcedIntensity = parseInt(params.get('intensity') ?? '2', 10);
+
+  let type, intensity;
+  if (forcedType && !state.isConnected) {
+    type = forcedType.toUpperCase();
+    intensity = Number.isFinite(forcedIntensity) ? forcedIntensity : 2;
+  } else {
+    type = state.isConnected && state.sensorType !== SENSOR_TYPE.UNKNOWN
+      ? state.sensorType : '';
+    intensity = state.isConnected
+      ? intensityFor(state.sensorType, state.latestValues)
+      : 0;
+  }
+
+  // Skip regenerating particles when nothing material has changed.
+  // updateSensorAnim is called on every sample (~5/s), so blindly
+  // resetting innerHTML would constantly nuke each particle's mid-air
+  // animation phase and produce visible flicker.
+  const prevType = els.sensorAnim.dataset.type;
+  const prevIntensity = els.sensorAnim.dataset.intensity;
+  const nextType = String(type);
+  const nextIntensity = String(intensity);
+  if (prevType === nextType && prevIntensity === nextIntensity) return;
+  els.sensorAnim.dataset.type = nextType;
+  els.sensorAnim.dataset.intensity = nextIntensity;
+  renderParticles(nextType, intensity);
 }
 
 /* Sample-rate menu (split button dropdown) ------------------ */
@@ -703,6 +830,15 @@ function wireUi() {
       setFirmwareCollapsed(false);
     }
   });
+
+  // Sensor display style toggle (Classic ↔ Modern)
+  if (els.viewToggle) {
+    els.viewToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('.view-toggle__btn');
+      if (!btn) return;
+      setViewMode(btn.dataset.mode);
+    });
+  }
 
   // Chart-toolbar — toggle expanded state
   els.chartToolbarToggle.addEventListener('click', (e) => {

@@ -11,6 +11,7 @@
   margin: 0 auto;
 }
 
+
 /* Heart rate state messages (PROCESSING / TOO_LOW / TOO_HIGH) */
 .hr-state {
   display: flex;

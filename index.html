@@ -53,13 +53,14 @@
 </head>
 <body>
 
+<!-- Sensor-aware particle layer — viewport-spanning, click-through.
+     Particles are generated in JS (see updateSensorAnim → renderParticles
+     in app.js) so each gets its own random position, drift vector, and
+     animation phase. Sits behind .app at z-index: 0; .app's translucent
+     backdrop softly tints them inside the card region. -->
+<div id="sensor-anim" class="sensor-anim" data-type="" data-intensity="0"></div>
+
 <div class="app">
-  <!-- Humidity ambient animation overlay (only renders when applicable) -->
-  <div id="humidity-anim" class="humidity-anim" data-layers="0">
-    <div class="humidity-anim__layer humidity-anim__layer--1" style="display:none"></div>
-    <div class="humidity-anim__layer humidity-anim__layer--2" style="display:none"></div>
-    <div class="humidity-anim__layer humidity-anim__layer--3" style="display:none"></div>
-  </div>
 
   <!-- Top bar -->
   <header class="topbar">
@@ -83,6 +84,14 @@
     </div>
 
     <div class="topbar__spacer"></div>
+
+    <!-- Sensor display style — switches the live readout between the
+         classic Vue-style sensor pebbles and the modern flat icons.
+         Hidden until a sensor is connected (matches chart toolbar). -->
+    <div id="view-toggle" class="view-toggle" style="display:none" role="group" aria-label="Sensor display style">
+      <button id="view-toggle-classic" class="view-toggle__btn" type="button" data-mode="classic" aria-pressed="false">Classic</button>
+      <button id="view-toggle-modern" class="view-toggle__btn is-active" type="button" data-mode="modern" aria-pressed="true">Modern</button>
+    </div>
 
     <!-- Chart mode toolbar — sits right before the record button.
          The options strip expands horizontally to the LEFT of the toggle

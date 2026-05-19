@@ -38,7 +38,11 @@ a { color: var(--kw-orange); }
 /* App container — matches Home.css "home" class
    ------------------------------------------------------------ */
 .app {
-  background-color: var(--kw-bg-home);
+  /* Translucent so the viewport-fixed .sensor-anim layer (rendered
+     beneath) is partially visible inside the card region too — making
+     the particle drift read as one continuous backdrop across the
+     whole screen rather than only in the body margin. */
+  background-color: rgba(25, 42, 51, 0.55);
   border-radius: 15px;
   margin: 2vh 2vw;
   height: calc(100vh - 4vh);
@@ -460,6 +464,38 @@ a { color: var(--kw-orange); }
   stroke: transparent !important;
 }
 
+/* Sensor display style toggle (classic Vue pebbles vs. modern icons).
+   Two-button pill matching the height of the chart toolbar. */
+.view-toggle {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  margin-right: 6px;
+}
+.view-toggle__btn {
+  height: 26px;
+  padding: 0 12px;
+  border: none;
+  background: transparent;
+  color: var(--kw-text-muted);
+  border-radius: 999px;
+  cursor: pointer;
+  font: 500 12px/1 var(--font-main);
+  letter-spacing: 0.3px;
+  transition: color 0.15s, background 0.15s;
+}
+.view-toggle__btn:hover { color: white; background: rgba(255, 255, 255, 0.06); }
+.view-toggle__btn.is-active {
+  color: white;
+  background: var(--kw-orange);
+}
+.view-toggle__btn.is-active:hover { background: var(--kw-orange-hover); }
+
 /* Chart type switcher — collapsed shows just a left-chevron toggle; opens
    horizontally to the left to reveal the available modes. */
 .chart-toolbar {
@@ -847,27 +883,40 @@ a { color: var(--kw-orange); }
   animation: fadePulse 1.5s ease-in-out infinite;
 }
 
-/* Humidity background overlays
-   ------------------------------------------------------------ */
-.humidity-anim {
-  position: absolute;
+/* Sensor-aware particle layer
+   ------------------------------------------------------------
+   Viewport-spanning, click-through. Two stacked layers with
+   slightly different speeds give a soft parallax. Each sensor
+   type swaps the background-image via the [data-type] selector
+   below. Intensity (0–3) gates layer visibility so quiet sensors
+   stay quiet and humidity-heavy moments feel weightier. */
+.sensor-anim {
+  position: fixed;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
 }
-.humidity-anim__layer {
+/* Each particle is its own SVG element with inline CSS vars set by JS:
+     --d   = animation duration   (longer = slower)
+     --dl  = negative delay so the population is out of phase on load
+     --dx  --dy = drift offset for the alternate-direction tween
+     --rot = static rotation, applied separately from the translate so
+             the keyframe can animate translate without colliding.
+   `alternate` direction means each particle gently floats back and
+   forth instead of looping with a hard reset — a more organic feel. */
+.sensor-anim__p {
   position: absolute;
-  width: 600px;
-  height: 600px;
-  background-image: url('../assets/gif/humidity.gif');
-  background-size: contain;
-  background-repeat: no-repeat;
-  opacity: 0.1;
+  display: block;
+  fill: white;
+  rotate: var(--rot, 0deg);
+  animation: particle-float var(--d, 24s) ease-in-out var(--dl, 0s) infinite alternate;
+  will-change: translate;
 }
-.humidity-anim__layer--1 { top: -100px; left: -200px; }
-.humidity-anim__layer--2 { top: 200px;  right: -250px; }
-.humidity-anim__layer--3 { bottom: -150px; left: 30%; }
+@keyframes particle-float {
+  from { translate: 0 0; }
+  to   { translate: var(--dx, 20px) var(--dy, -30px); }
+}
 
 /* Foreground content above animation */
 .connected, .welcome { position: relative; z-index: 1; }

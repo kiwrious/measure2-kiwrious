@@ -4,7 +4,7 @@
     {
       "label": "Serve Kiwrious Measure",
       "type": "shell",
-      "command": "npx --yes http-server . -p 5173 -c-1 --cors",
+      "command": "npx --yes http-server . -p 4713 -c-1 --cors",
       "isBackground": true,
       "problemMatcher": [
         {
@@ -26,7 +26,7 @@
     {
       "label": "Serve (Python)",
       "type": "shell",
-      "command": "python3 -m http.server 5173",
+      "command": "python3 -m http.server 4713",
       "isBackground": true,
       "problemMatcher": [],
       "presentation": {
