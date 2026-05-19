@@ -577,6 +577,11 @@ const KIWRIOUS_LINKS = [
     url: 'https://dev.kiwrious.com',
     desc: 'Web Serial SDK, sample code, and developer documentation.',
   },
+  {
+    title: 'Docs',
+    url: 'https://docs.kiwrious.com',
+    desc: 'Reference documentation for Kiwrious sensors and SDKs.',
+  },
 ];
 
 function renderLinks() {
