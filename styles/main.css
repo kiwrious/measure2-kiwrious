@@ -41,12 +41,10 @@ a { color: var(--kw-orange); }
   /* Translucent so the viewport-fixed .sensor-anim layer (rendered
      beneath) is partially visible inside the card region too — making
      the particle drift read as one continuous backdrop across the
-     whole screen rather than only in the body margin. */
+     whole screen. */
   background-color: rgba(25, 42, 51, 0.55);
-  border-radius: 15px;
-  margin: 2vh 2vw;
-  height: calc(100vh - 4vh);
-  height: calc(100dvh - 4vh);
+  height: 100vh;
+  height: 100dvh;
   padding: 18px 22px 36px;
   position: relative;
   overflow: hidden;
@@ -309,13 +307,17 @@ a { color: var(--kw-orange); }
    ------------------------------------------------------------ */
 .connected {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  /* Use 1fr + fixed px on the side column so the collapse/expand
+     transition interpolates smoothly. Mixing `fr` with `px` (as in the
+     previous `1.6fr 1fr` → `1fr 44px`) is not animatable and produces a
+     jump/impulse mid-transition. */
+  grid-template-columns: 1fr 420px;
   gap: 20px;
   align-items: stretch;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  transition: grid-template-columns 0.25s ease;
+  transition: grid-template-columns 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 .connected.is-side-collapsed {
   grid-template-columns: 1fr 44px;
@@ -587,6 +589,12 @@ a { color: var(--kw-orange); }
   border-radius: 15px;
   display: flex;
   flex-direction: row;
+  /* Anchor children to the right edge. In the expanded state body+rail
+     fill the row exactly so this is a no-op, but during the collapse
+     transition (when body snaps to zero width) this keeps the rail
+     glued to the right edge of the shrinking column instead of jumping
+     to the left. */
+  justify-content: flex-end;
   min-height: 0;
   overflow: hidden;
 }
@@ -845,8 +853,29 @@ a { color: var(--kw-orange); }
   font-size: 13px;
 }
 
-/* Collapsed state — body hidden, rail remains visible */
-.side-panel.is-collapsed .side-panel__body { display: none; }
+/* Collapsed state — body hidden, rail remains visible.
+   `display: none` would prevent the column-expansion transition from
+   reading as a smooth slide (and forbid fading the content in/out), so
+   we hide via opacity + visibility instead. On expand, the body waits
+   for the column to finish growing (delay matches .connected's
+   grid-template-columns transition: 0.35s) and then fades in. On
+   collapse, content fades out immediately so the column shrinks into
+   empty space. */
+.side-panel__body {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.15s ease 0.35s, visibility 0s linear 0.35s;
+}
+.side-panel.is-collapsed .side-panel__body {
+  opacity: 0;
+  visibility: hidden;
+  /* Collapse to zero so the body's padding doesn't reserve ~28px and
+     push the 44px rail partly off-screen. min-width:0 alone isn't
+     enough because padding (content-box) adds on top. */
+  flex: 0 0 0;
+  padding: 0;
+  transition: opacity 0.15s ease 0s, visibility 0s linear 0.15s;
+}
 .side-panel.is-collapsed .side-panel__rail { border-left: none; }
 
 /* Custom scrollbar (webkit) */
