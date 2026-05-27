@@ -1,6 +1,6 @@
 /* ============================================================
    Constants — colours, axis configs, sample-rate menus per sensor
-   Mirrors src/constants.ts in kiwrious-measure-vue (refreshed for HTML5)
+   Mirrors src/constants.ts in measure-kiwrious-com (refreshed for HTML5)
    ============================================================ */
 
 export const SENSOR_TYPE = {
@@ -53,7 +53,7 @@ export const SERIES_ORDER = {
    same physical quantity (e.g. AmbientTemp + InfraredTemp) so they share one
    scale — the band is computed from the combined min/max. `hardFloor` /
    `hardCeiling` pin the sensor's documented operating range (sourced from
-   kiwrious-sdk-docs). Log-scale axes (Lux, Con) opt out of clustering but
+   docs-kiwrious-com). Log-scale axes (Lux, Con) opt out of clustering but
    still display their documented range in the Ranges tab. */
 export const AXIS_CONFIG = {
   Uv:  { title: 'UV Radiation (UV Index)',         color: '#FFFFFF', log: false, decimals: 1, step: 1,   hardFloor: 0,   hardCeiling: 12 },

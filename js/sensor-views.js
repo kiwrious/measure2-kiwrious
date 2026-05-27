@@ -1,6 +1,6 @@
 /* ============================================================
    Sensor value renderers — produce SVG/HTML for each sensor type
-   Mirrors the per-sensor SVG components from kiwrious-measure-vue
+   Mirrors the per-sensor SVG components from measure-kiwrious-com
    ============================================================ */
 
 import { SENSOR_TYPE, uvBand } from './constants.js';

@@ -1,8 +1,8 @@
 {
-  "name": "kiwrious-measure-html5",
+  "name": "measure2-kiwrious-com",
   "version": "1.0.0",
   "private": true,
-  "description": "Vanilla HTML5 + ESM port of kiwrious-measure-vue. Connects to Kiwrious USB sensors over Web Serial, charts readings, and exports recordings as CSV. Zero build step.",
+  "description": "Vanilla HTML5 + ESM port of measure-kiwrious-com. Connects to Kiwrious USB sensors over Web Serial, charts readings, and exports recordings as CSV. Zero build step.",
   "scripts": {
     "serve": "npx --yes http-server . -p 4713 -c-1 --cors",
     "serve:py": "python3 -m http.server 4713",

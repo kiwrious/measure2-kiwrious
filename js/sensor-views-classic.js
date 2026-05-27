@@ -1,6 +1,6 @@
 /* ============================================================
    Classic sensor value renderers — port of the original
-   kiwrious-measure-vue sensor pebble SVGs (the recognisable
+   measure-kiwrious-com sensor pebble SVGs (the recognisable
    hexagonal sensor "rocks" with the reading overlaid).
    Each renderer accepts the decodedValues array from the SDK.
    viewBox is 640x400 to match the Vue layout coordinates 1:1.

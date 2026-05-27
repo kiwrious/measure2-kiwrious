@@ -1,6 +1,6 @@
 # Kiwrious Measure — HTML5 edition
 
-A vanilla HTML5 + ES modules port of [`kiwrious-measure-vue`](../kiwrious-measure-vue). Connects to Kiwrious USB sensors over the Web Serial API, charts live readings, and exports recordings as CSV.
+A vanilla HTML5 + ES modules port of [`measure-kiwrious-com`](../measure-kiwrious-com). Connects to Kiwrious USB sensors over the Web Serial API, charts live readings, and exports recordings as CSV.
 
 **Zero build step.** Open `index.html` from any static server and it runs.
 
@@ -34,7 +34,7 @@ Open `http://localhost:5173`.
 ## Project layout
 
 ```
-kiwrious-measure-html5/
+measure2-kiwrious-com/
 ├── index.html              ← Page shell, app bar, two-column layout
 ├── styles/
 │   ├── main.css            ← Layout, brand colours, animations
@@ -67,7 +67,7 @@ kiwrious-measure-html5/
 └── package.json
 ```
 
-## Differences from kiwrious-measure-vue
+## Differences from measure-kiwrious-com
 
 This is a port, not a 1:1 reskin. Behavioural goals: feature parity for everyday use, modernised UX where the original was awkward.
 
@@ -115,8 +115,8 @@ This is a port, not a 1:1 reskin. Behavioural goals: feature parity for everyday
 cd ../kiwrious-web-serial-sdk
 npm install
 npm run build
-cp dist/kiwrious-webserial.esm.js ../kiwrious-measure-html5/js/
-cp -r dist/js/* ../kiwrious-measure-html5/lib/   # heart-rate runtime, optional
+cp dist/kiwrious-webserial.esm.js ../measure2-kiwrious-com/js/
+cp -r dist/js/* ../measure2-kiwrious-com/lib/   # heart-rate runtime, optional
 ```
 
 ## Browser support
